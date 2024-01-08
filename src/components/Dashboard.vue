@@ -11,7 +11,7 @@
                     </div>
                 </div>
             </div>
-            <button v-if="ready" class="bg-white text-black p-4 w-1/2 self-center mb-4 rounded">Confirm</button>
+            <button v-if="ready" @click="confirm" class="bg-white text-black p-4 w-1/2 self-center mb-4 rounded">Confirm</button>
             <ScanLabel v-if="scaning" @scanned="(scan) => scanned(scan)" @closeModal="scaning = false"/>
         </div>
         <div class="col-span-8 bg-lightGrey flex flex-col gap-6">
@@ -28,6 +28,7 @@
     import {backArrow} from '../assets/index.js'
     import LabelTable from './LabelTable.vue';
     import ScanLabel from './ScanLabel.vue';
+    import axios from "axios";
     export default {
         props: {
             data: {}
@@ -77,6 +78,20 @@
                 this.scannedList.splice(index, 1);
                 this.calculateQty();
             },
+            async confirm() {
+                let payload = {
+                    ordNr: this.data.ordNr,
+                    delLines: this.scannedList
+                }
+                try {
+                    const response = await axios.post('http://localhost:4000/', payload);
+                    alert(response.data)
+                    this.$router.push('/')
+                } catch(error) {
+                    console.error(error)
+                    alert(error.response.data)
+                }
+            }
         },
         watch: {
             data() {

@@ -29,9 +29,9 @@
                 else {
                     this.loading = true;
                     try {
-                        const response = await axios.get('http://localhost:3000/', {
+                        const response = await axios.get('http://localhost:4000/', {
                         params: {
-                            suaPropriedade: this.ordNr,
+                            value: this.ordNr,
                         }
                         });
                         console.log(response)
