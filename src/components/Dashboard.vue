@@ -7,15 +7,18 @@
                 <div >
                     <div v-for="part in data.parts" class="pl-12">
                         <label class="font-bold">{{ part.PartCode }}:</label>
-                        <label class="pl-2"> <label :class="{completed: part.ScanQty === part.Qty, 'over-qty': part.ScanQty > part.Qty}">{{ part.ScanQty }}</label> / <b>{{ part.Qty }}</b></label>
+                        <label class="pl-2"> <label :class="{completed: part.ScanQty == part.Qty, 'over-qty': part.ScanQty > part.Qty, incompleted: part.ScanQty < part.Qty}">{{ part.ScanQty }}</label> / <b>{{ part.Qty }}</b></label>
                     </div>
                 </div>
             </div>
-            <button v-if="ready" @click="confirm" class="bg-white text-black p-4 w-1/2 self-center mb-4 rounded">Confirm</button>
+            <button v-if="ready" :disabled="loading" @click="confirm" class="bg-white text-black p-4 w-1/2 self-center mb-4 rounded font-bold">
+                <label v-if="!loading" class="cursor-pointer">Confirm</label>
+                <label v-if="loading" class="animate-pulse">Importing...</label>
+            </button>
             <ScanLabel v-if="scaning" @scanned="(scan) => scanned(scan)" @closeModal="scaning = false"/>
         </div>
         <div class="col-span-8 bg-lightGrey flex flex-col gap-6">
-            <button class="bg-white rounded text-black p-2 w-10/12 self-center mt-4" @click="() => {this.scaning = true}">
+            <button class="bg-white rounded text-black p-2 w-10/12 self-center mt-4" @click="() => {this.scaning = true}" :disabled="loading">
                 Scan Label
             </button>
             
@@ -42,7 +45,8 @@
                 scaning: false,
                 scannedList: [],
                 backArrow,
-                ready: false
+                ready: false,
+                loading: false
             }
         },
         methods: {
@@ -69,7 +73,7 @@
                 })
                 let ready = true
                 this.data.parts.forEach(part => {
-                    if (part.ScanQty != part.Qty) ready = false
+                    if (part.ScanQty > part.Qty) ready = false
                 })
                 console.log(ready)
                 this.ready = ready
@@ -79,17 +83,20 @@
                 this.calculateQty();
             },
             async confirm() {
+                this.loading = true
                 let payload = {
                     ordNr: this.data.ordNr,
                     delLines: this.scannedList
                 }
                 try {
-                    const response = await axios.post('http://localhost:4000/', payload);
+                    const response = await axios.post('http://localhost:5000/', payload);
                     alert(response.data)
                     this.$router.push('/')
                 } catch(error) {
                     console.error(error)
                     alert(error.response.data)
+                } finally {
+                    this.loading = false
                 }
             }
         },
@@ -109,5 +116,9 @@
     .completed {
         @apply text-green-500;
         @apply font-bold;
+    }
+    .incompleted {
+        @apply text-yellow-600;
+        @apply font-bold
     }
 </style>

@@ -29,7 +29,7 @@
                 else {
                     this.loading = true;
                     try {
-                        const response = await axios.get('http://localhost:4000/', {
+                        const response = await axios.get('http://localhost:5000/', {
                         params: {
                             value: this.ordNr,
                         }
@@ -38,7 +38,7 @@
                         this.$emit('confirmed', response.data)
                     } catch (error) {
                         console.error(error)
-                        alert(error.response.data);
+                        alert(error.response.data.error);
                     } finally {
                         this.loading = false;
                     }
