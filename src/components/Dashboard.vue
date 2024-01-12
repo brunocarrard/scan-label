@@ -89,7 +89,7 @@
                     delLines: this.scannedList
                 }
                 try {
-                    const response = await axios.post('http://localhost:5000/', payload);
+                    const response = await axios.post('http://192.168.0.154:4000/', payload);
                     alert(response.data)
                     this.$router.push('/')
                 } catch(error) {

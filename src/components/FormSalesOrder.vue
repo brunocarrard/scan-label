@@ -29,7 +29,7 @@
                 else {
                     this.loading = true;
                     try {
-                        const response = await axios.get('http://localhost:5000/', {
+                        const response = await axios.get('http://192.168.0.154:4000/', {
                         params: {
                             value: this.ordNr,
                         }
