@@ -1,25 +1,40 @@
 <template>
     <div class="h-screen w-screen absolute flex flex-col items-center justify-center">
-        <div class="w-96 h-96 bg-black flex flex-col items-center justify-center gap-4 border-2 border-red-500 rounded-xl relative"> 
+        <div class="w-96 h-96 bg-black flex flex-col items-center justify-center gap-4 border-2 border-red-500 rounded-xl relative">
+            <!-- <button @click="startScan">Scan QR Code</button> -->
+            
             <i v-html="closeIcon" class="absolute top-0 left-0 pl-4 pt-6 cursor-pointer" @click="$emit('closeModal')"></i>
-            <label class="w-1/2 font-bold">Scan Label:</label>
+            <!-- <label class="w-1/2 font-bold">Scan Label:</label> -->
             <div class="flex flex-col gap-2 w-1/2">
-
-                <input class=" text-black" placeholder="Click here before scanning" v-model="label">
-                <button class="bg-white rounded py-1 text-black" @click="interpreteScan()">Confirm</button>
+                <div id="reader" style="width: 100%;"></div>
+                <input class=" text-black text-center" placeholder="Scan will appear here" v-model="label">
+                <button class="bg-white rounded py-1 text-black" @click="interpreteScan()" v-if="label != ''">Confirm</button>
             </div>
         </div>
     </div>
 </template>
 
 <script>
+    import { Html5QrcodeScanner } from "html5-qrcode";
     import { closeIcon } from '../assets/index.js';
     export default {
         data() {
             return {
                 label: '',
-                closeIcon
+                closeIcon,
             }
+        },
+        mounted() {
+                const html5QrCode = new Html5QrcodeScanner(
+                    "reader", { fps: 10, qrbox: 250 }
+                );
+                html5QrCode.render(
+                    (decodedText, decodedResult) => {
+                    // do something with the decoded text
+                    this.label = decodedText;
+                    console.log('sacneado')
+                    },
+                );
         },
         methods: {
             interpreteScan() {
@@ -33,7 +48,7 @@
                     let rawPartCode = this.label.substring(partCodeIndex + 2, qtyIndex - 1)
                     let rawQty = this.label.substring(qtyIndex + 1, dunsIndex - 1)
                     let rawDuns = this.label.substring(dunsIndex + 3, lotNrIndex - 1)
-                    let rawLotNr = this.label.substring(lotNrIndex + 2).slice(0, -1)
+                    let rawLotNr = this.label.substring(lotNrIndex + 2).slice(0, -2)
 
                     let scan = {
                         partCode: '',
@@ -49,7 +64,7 @@
 
                     this.$emit('scanned', scan)
                 }
-            }
+            },
         }
     }
 </script>
