@@ -6,7 +6,7 @@
             <i v-html="closeIcon" class="absolute top-0 left-0 pl-4 pt-6 cursor-pointer" @click="$emit('closeModal')"></i>
             <!-- <label class="w-1/2 font-bold">Scan Label:</label> -->
             <div class="flex flex-col gap-2 w-1/2">
-                <div id="reader" style="width: 100%;"></div>
+                <div id="reader" style="width: 200px;"></div>
                 <input class=" text-black text-center" placeholder="Scan will appear here" v-model="label">
                 <button class="bg-white rounded py-1 text-black" @click="interpreteScan()" v-if="label != ''">Confirm</button>
             </div>
@@ -26,7 +26,7 @@
         },
         mounted() {
                 const html5QrCode = new Html5QrcodeScanner(
-                    "reader", { fps: 10, qrbox: 250 }
+                    "reader", { fps: 5, qrbox: 350, aspectRatio: 1, focusMode: "continuous" }
                 );
                 html5QrCode.render(
                     (decodedText, decodedResult) => {
