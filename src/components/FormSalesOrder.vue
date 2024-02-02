@@ -17,6 +17,8 @@
 
 <script>
     import axios from "axios";
+    import { useToastify } from 'vue-toastify-3'
+    const { toastify } = useToastify()
     import { Html5QrcodeScanner } from "html5-qrcode";
     export default {
         data() {
@@ -53,7 +55,8 @@
                         this.$emit('confirmed', response.data)
                     } catch (error) {
                         console.error(error)
-                        alert(error.response.data.error);
+                        toastify('error', error.response.data.error)
+
                     } finally {
                         this.loading = false;
                     }

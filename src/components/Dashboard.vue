@@ -31,6 +31,8 @@
     import {backArrow} from '../assets/index.js'
     import LabelTable from './LabelTable.vue';
     import ScanLabel from './ScanLabel.vue';
+    import { useToastify } from 'vue-toastify-3'
+    const { toastify } = useToastify()
     import axios from "axios";
     export default {
         props: {
@@ -56,7 +58,7 @@
                     this.calculateQty()
                     this.scaning = false
                 } else {
-                    alert('Scanned PartCode does not exists on Sales Order')
+                    toastify('error', 'Scanned PartCode does not exists on Sales Order')
                 }
                 
             },
@@ -90,11 +92,11 @@
                 }
                 try {
                     const response = await axios.post('https://192.168.0.154:4000/', payload);
-                    alert(response.data)
+                    toastify('success', response.data)
                     this.$router.push('/')
                 } catch(error) {
                     console.error(error)
-                    alert(error.response.data)
+                    toastify('error', error.response.data)
                 } finally {
                     this.loading = false
                 }

@@ -2,6 +2,7 @@
   <div class="flex items-center justify-center sm:h-tablet lg:h-full w-100%">
     <router-view @confirmed="(data) => confirmedOrdNr(data)" :data="data"/>
   </div>
+  <Toastify/>
 </template>
 
 <script>
