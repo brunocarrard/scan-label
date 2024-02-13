@@ -5,8 +5,7 @@
             <tr class="grid grid-cols-12">
                 <th class="col-span-3">PartCode</th>
                 <th class="col-span-2">Qty</th>
-                <th class="col-span-3">Duns</th>
-                <th class="col-span-3">LotNr</th>
+                <th class="col-span-6">Certificate / LotNr</th>
                 <th class="col-span-1 flex items-center justify-center">x</th>
             </tr>
         </thead>
@@ -14,9 +13,8 @@
             <tr v-for="scan, index in scans" class="grid grid-cols-12">
                 <td class="col-span-3"> {{ scan.partCode }} </td>
                 <td class="col-span-2"> {{ scan.qty }} </td>
-                <td class="col-span-3"> {{ scan.duns }} </td>
-                <td class="col-span-3"> {{ scan.lotNr }} </td>
-                <td class="col-span-1 flex items-center justify-center"> <i v-html="removeIcon" class="cursor-pointer" @click="$emit('removeItem', index)"></i> </td>
+                <td class="col-span-6"> {{ scan.lotNr }} </td>
+                <td class="col-span-1 flex items-center justify-center"> <i v-html="removeIcon" class="cursor-pointer opacity-80" @click="$emit('removeItem', index)"></i> </td>
             </tr>
         </tbody>
     </table>

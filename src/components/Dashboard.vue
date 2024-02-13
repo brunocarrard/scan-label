@@ -4,24 +4,28 @@
             <div class="pl-4 pt-4">
                 <i v-html="backArrow" class="cursor-pointer" @click="$router.push('/')"></i>
                 <h1 class="font-bold text-xl pl-10">{{ data.ordNr }}</h1>
-                <div >
-                    <div v-for="part in data.parts" class="pl-12">
-                        <label class="font-bold">{{ part.PartCode }}:</label>
-                        <label class="pl-2"> <label :class="{completed: part.ScanQty == part.Qty, 'over-qty': part.ScanQty > part.Qty, incompleted: part.ScanQty < part.Qty}">{{ part.ScanQty }}</label> / <b>{{ part.Qty }}</b></label>
+                <div class="flex flex-col gap-5" >
+                    <div>
+                        <div v-for="part in data.parts" class="pl-12">
+                            <label class="font-bold">{{ part.PartCode }}:</label>
+                            <label class="pl-2"> <label :class="{completed: part.ScanQty == part.Qty, 'over-qty': part.ScanQty > part.Qty, incompleted: part.ScanQty < part.Qty}">{{ part.ScanQty }}</label> / <b>{{ part.Qty }}</b></label>
+                            
+                        </div>
                     </div>
+                    <label><b>Total Scanned Boxes:</b> {{ scannedList.length }}</label>
                 </div>
             </div>
             <button v-if="ready" :disabled="loading" @click="confirm" class="bg-white text-black p-4 w-1/2 self-center mb-4 rounded font-bold">
                 <label v-if="!loading" class="cursor-pointer">Confirm</label>
                 <label v-if="loading" class="animate-pulse">Importing...</label>
             </button>
-            <ScanLabel v-if="scaning" @scanned="(scan) => scanned(scan)" @closeModal="scaning = false"/>
+            
         </div>
         <div class="col-span-8 bg-lightGrey flex flex-col gap-6">
-            <button class="bg-white rounded text-black p-2 w-10/12 self-center mt-4" @click="() => {this.scaning = true}" :disabled="loading">
+            <!-- <button class="bg-white rounded text-black p-2 w-10/12 self-center mt-4" @click="() => {this.scaning = true}" :disabled="loading">
                 Scan Label
-            </button>
-            
+            </button> -->
+            <ScanLabel @scanned="(scan) => scanned(scan)" @closeModal="scaning = false"/>
             <LabelTable :scans="scannedList" @removeItem="(index) => removeItem(index)"/>
         </div>
     </div>

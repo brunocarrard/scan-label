@@ -1,11 +1,11 @@
 <template>
-    <div class="h-screen w-screen absolute flex flex-col items-center justify-center">
-        <div class="w-96 h-96 bg-black flex flex-col items-center justify-center gap-4 border-2 border-red-500 rounded-xl relative">
+    <div class="flex flex-col items-center justify-center">
+        <div class="w-96 flex flex-col items-center justify-center gap-2">
             <!-- <button @click="startScan">Scan QR Code</button> -->
             
-            <i v-html="closeIcon" class="absolute top-0 left-0 pl-4 pt-6 cursor-pointer" @click="$emit('closeModal')"></i>
+            <!-- <i v-html="closeIcon" class="absolute top-0 left-0 pl-4 pt-6 cursor-pointer" @click="$emit('closeModal')"></i> -->
             <!-- <label class="w-1/2 font-bold">Scan Label:</label> -->
-            <div class="flex flex-col gap-2 w-1/2">
+            <div class="flex flex-col gap-1 ">
                 <div id="reader" style="width: 200px;"></div>
                 <input class=" text-black text-center" placeholder="Scan will appear here" v-model="label">
                 <button class="bg-white rounded py-1 text-black" @click="interpreteScan()" v-if="label != ''">Confirm</button>
