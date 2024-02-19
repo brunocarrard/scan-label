@@ -9,6 +9,9 @@ export default {
       },
       height: {
         tablet: '768px'
+      },
+      spacing: {
+        'cel': '500px',
       }
     },
   },
