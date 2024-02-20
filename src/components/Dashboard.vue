@@ -1,37 +1,40 @@
 <template>
-    <div class="w-full grid grid-cols-12">
-        <div
-            class="bg-grey text-white col-span-4 sm:col-span-4 sm:h-tablet lg:h-screen h-screen flex flex-col justify-between">
+    <div class="grid grid-cols-12 w-full max-h-screen scroll-auto">
+        <div class="col-span-12 bg-lightGrey flex flex-col">
             <div class="sm:pl-4 sm:pt-4 text-xs sm:text-base">
                 <i v-html="backArrow" class="cursor-pointer" @click="$router.push('/')"></i>
-                <h1 class="font-bold text-xl sm:pl-10 pl-2">{{ data.ordNr }}</h1>
-                <div class="flex flex-col gap-5">
-                    <div>
-                        <div v-for="part in data.parts" class="sm:pl-12">
-                            <label class="font-bold">{{ part.PartCode }}:</label>
-                            <label class="pl-2"> <label
-                                    :class="{ completed: part.ScanQty == part.Qty, 'over-qty': part.ScanQty > part.Qty, incompleted: part.ScanQty < part.Qty }">{{
-                                        part.ScanQty ? 0 : ScanQty }}</label> / <b>{{ part.Qty }}</b></label>
-
-                        </div>
-                    </div>
-                    <label><b>Total Scanned Boxes:</b> {{ scannedList.length }}</label>
-                </div>
+                <h1 class="font-bold text-white text-xl sm:pl-10 pl-2">{{ data.ordNr }}</h1>
             </div>
-            <button v-if="true" :disabled="loading" @click="confirm"
-                class="bg-white text-black p-4 sm:w-1/2 self-center mb-36 sm:mb-20 rounded font-bold">
-                <label v-if="!loading" class="cursor-pointer">Confirm</label>
-                <label v-if="loading" class="animate-pulse">Importing...</label>
-            </button>
-
-        </div>
-        <div class="col-span-8 sm:col-span-8 bg-lightGrey flex flex-col gap-6">
             <!-- <button class="bg-white rounded text-black p-2 w-10/12 self-center mt-4" @click="() => {this.scaning = true}" :disabled="loading">
                 Scan Label
             </button> -->
             <ScanLabel @scanned="(scan) => scanned(scan)" @closeModal="scaning = false" />
-            <LabelTable :scans="scannedList" @removeItem="(index) => removeItem(index)" />
+            <!-- <LabelTable :scans="scannedList" @removeItem="(index) => removeItem(index)" /> -->
         </div>
+        <div class="bg-grey col-span-12 flex flex-col">
+            <div class="flex flex-col gap-5">
+                <div>
+                    <div v-for="part in data.parts" class="gap-2">
+                        <label class="font-bold text-white pl-4">{{ part.PartCode }}:</label>
+                        <label class="pl-2 text-white"> <label
+                                :class="{ completed: part.ScanQty == part.Qty, 'over-qty': part.ScanQty > part.Qty, incompleted: part.ScanQty < part.Qty }">{{
+                                    part.ScanQty ? part.ScanQty : 0 }}</label> / <b>{{ part.Qty }}</b></label>
+                        <LabelTable :scans="scannedList[part.PartCode]"
+                            @removeItem="(index) => removeItem(index, part.PartCode)" />
+                    </div>
+
+                </div>
+                <label class="text-white"><b>Total Scanned Boxes:</b> {{ totalScan }}</label>
+            </div>
+
+            <button v-if="ready && totalScan > 0" :disabled="loading" @click="confirm"
+                class="bg-white text-black p-4 w-1/2 self-center rounded font-bold my-4">
+                <label v-if="!loading" class="cursor-pointer">Import Scans</label>
+                <label v-if="loading" class="animate-pulse">Importing...</label>
+            </button>
+
+        </div>
+
     </div>
 </template>
 
@@ -53,16 +56,22 @@ export default {
     data() {
         return {
             scaning: false,
-            scannedList: [],
+            scannedList: {},
             backArrow,
             ready: false,
-            loading: false
+            loading: false,
+            totalScan: 0
         }
+    },
+    beforeMount() {
+        this.data.parts.forEach(part => {
+            this.scannedList[part.PartCode] = []
+        })
     },
     methods: {
         scanned(scan) {
             if (this.data.parts.some(part => part.PartCode === scan.partCode)) {
-                this.scannedList.push(scan)
+                this.scannedList[scan.partCode].push(scan)
                 this.calculateQty()
                 this.scaning = false
             } else {
@@ -71,15 +80,16 @@ export default {
 
         },
         calculateQty() {
+            this.totalScan = 0
             this.data.parts.forEach(item => {
                 item.ScanQty = 0
             })
-            this.scannedList.forEach(item => {
-                this.data.parts.forEach(mapItem => {
-                    if (mapItem.PartCode === item.partCode) {
-                        mapItem.ScanQty += parseInt(item.qty)
-                    }
+            this.data.parts.forEach(part => {
+                this.scannedList[part.PartCode].forEach(scan => {
+                    part.ScanQty += parseInt(scan.qty)
+                    this.totalScan += parseInt(scan.qty)
                 })
+
             })
             let ready = true
             this.data.parts.forEach(part => {
@@ -88,18 +98,23 @@ export default {
             console.log(ready)
             this.ready = ready
         },
-        removeItem(index) {
-            this.scannedList.splice(index, 1);
+        removeItem(index, partCode) {
+            this.scannedList[partCode].splice(index, 1);
             this.calculateQty();
         },
         async confirm() {
             this.loading = true
             let payload = {
                 ordNr: this.data.ordNr,
-                delLines: this.scannedList
+                delLines: []
             }
+            this.data.parts.forEach(part => {
+                this.scannedList[part.PartCode].forEach(scan => {
+                    payload.delLines.push(scan)
+                })
+            })
             try {
-                const response = await axios.post('https://192.168.0.154:4000/', payload);
+                const response = await axios.post('https://192.168.0.154:4020/', payload);
                 toastify('success', response.data)
                 this.$router.push('/')
             } catch (error) {

@@ -1,6 +1,6 @@
 <template>
-    <div class=" self-center text-xs sm:text-base">
-        <table v-if="scans.length > 0" class="bg-white sm:w-1/2">
+    <div class="self-center text-xs sm:text-base">
+        <table v-if="scans.length > 0" class="bg-white w-1/4 sm:w-1/2">
             <thead class="header">
                 <tr class="grid grid-cols-12">
                     <th class="col-span-3">PartCode</th>
@@ -9,7 +9,7 @@
                     <th class="col-span-1 flex items-center justify-center">x</th>
                 </tr>
             </thead>
-            <tbody class="flex flex-col max-h-cel sm:max-h-96 overflow-y-scroll auto">
+            <tbody class="flex flex-col max-h-40 overflow-y-scroll auto">
                 <tr v-for=" scan, index  in  scans " class="grid grid-cols-12 transition-transform">
                     <td class="col-span-3 "> {{ scan.partCode }} </td>
                     <td class="col-span-2"> {{ scan.qty }} </td>

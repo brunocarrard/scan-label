@@ -7,8 +7,9 @@
             <!-- <label class="w-1/2 font-bold">Scan Label:</label> -->
             <div class="flex flex-col gap-1">
                 <div id="reader" style="width: 200px;" class="hidden sm:block"></div>
-                <input class=" text-black text-center mt-10 sm:mt-0" placeholder="Scan will appear here" v-model="label">
-                <button class="bg-white rounded py-1 text-black" @click="interpreteScan()"
+                <input class=" text-black text-center mt-2 mb-2 sm:mt-0" placeholder="Scan will appear here"
+                    v-model="label">
+                <button class="bg-white rounded py-1 text-black mb-2" @click="interpreteScan()"
                     v-if="label != ''">Confirm</button>
             </div>
         </div>
