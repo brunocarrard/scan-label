@@ -18,7 +18,7 @@
                         <label class="font-bold text-white pl-4">{{ part.PartCode }}:</label>
                         <label class="pl-2 text-white"> <label
                                 :class="{ completed: part.ScanQty == part.Qty, 'over-qty': part.ScanQty > part.Qty, incompleted: part.ScanQty < part.Qty }">{{
-                                    part.ScanQty ? part.ScanQty : 0 }}</label> / <b>{{ part.Qty }}</b></label>
+                    part.ScanQty ? part.ScanQty : 0 }}</label> / <b>{{ part.Qty }}</b></label>
                         <LabelTable :scans="scannedList[part.PartCode]"
                             @removeItem="(index) => removeItem(index, part.PartCode)" />
                     </div>
@@ -71,6 +71,7 @@ export default {
     methods: {
         scanned(scan) {
             if (this.data.parts.some(part => part.PartCode === scan.partCode)) {
+                scan.SubPartInd = this.data.parts.find(part => part.PartCode === scan.partCode).SubPartInd ?? 0
                 this.scannedList[scan.partCode].push(scan)
                 this.calculateQty()
                 this.scaning = false
@@ -92,9 +93,18 @@ export default {
 
             })
             let ready = true
+            // if (!this.scannedList.parts.filter(scan => scan.SubPartInd == 0).length > 0) ready = false
+            let scanArray = []
+            Object.values(this.scannedList).forEach(scans => {
+                scans.forEach(scan => {
+                    if (scan.SubPartInd == 0) scanArray.push(scan)
+                })
+            })
+            if (!scanArray.length > 0) ready = false
             this.data.parts.forEach(part => {
                 if (part.ScanQty > part.Qty) ready = false
             })
+
             console.log(ready)
             this.ready = ready
         },
@@ -113,16 +123,17 @@ export default {
                     payload.delLines.push(scan)
                 })
             })
-            try {
-                const response = await axios.post('https://192.168.0.154:4000/', payload);
-                toastify('success', response.data)
-                this.$router.push('/')
-            } catch (error) {
-                console.error(error)
-                toastify('error', error.response.data)
-            } finally {
-                this.loading = false
-            }
+            console.log(payload)
+            // try {
+            //     const response = await axios.post('https://192.168.0.154:4000/', payload);
+            //     toastify('success', response.data)
+            //     this.$router.push('/')
+            // } catch (error) {
+            //     console.error(error)
+            //     toastify('error', error.response.data)
+            // } finally {
+            //     this.loading = false
+            // }
         }
     },
     watch: {

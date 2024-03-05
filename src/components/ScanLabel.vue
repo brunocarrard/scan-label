@@ -65,6 +65,7 @@ export default {
                 if (rawLotNr != '?') scan.lotNr = rawLotNr
 
                 this.$emit('scanned', scan)
+                this.label = ''
             }
         },
     }
