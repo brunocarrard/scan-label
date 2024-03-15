@@ -49,7 +49,7 @@ export default {
             else {
                 this.loading = true;
                 try {
-                    const response = await axios.get('http://127.0.0.1:5000', {
+                    const response = await axios.get('https://192.168.0.154:4020', {
                         params: {
                             value: this.ordNr,
                         }
