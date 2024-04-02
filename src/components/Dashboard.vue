@@ -156,7 +156,7 @@ export default {
                 })
             })
             try {
-                const response = await axios.post('https://192.168.0.154:4020', payload);
+                const response = await axios.post('http://127.0.0.1:5000', payload);
                 toastify('success', response.data)
                 this.$router.push('/')
             } catch (error) {
