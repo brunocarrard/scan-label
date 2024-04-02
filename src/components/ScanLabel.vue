@@ -40,33 +40,37 @@ export default {
     },
     methods: {
         interpreteScan() {
-            if (this.label === '') alert('Must scan first')
-            else {
-                let partCodeIndex = this.label.indexOf('1P');
-                let qtyIndex = this.label.indexOf('Q');
-                let dunsIndex = this.label.indexOf('12V');
-                let lotNrIndex = this.label.indexOf('1T');
+            switch (this.label) {
+                case '':
+                    alert('Must scan first')
+                    break
+                default:
+                    let partCodeIndex = this.label.indexOf('1P');
+                    let qtyIndex = this.label.indexOf('Q');
+                    let dunsIndex = this.label.indexOf('12V');
+                    let lotNrIndex = this.label.indexOf('1T');
 
-                let rawPartCode = this.label.substring(partCodeIndex + 2, qtyIndex - 1)
-                let rawQty = this.label.substring(qtyIndex + 1, dunsIndex - 1)
-                let rawDuns = this.label.substring(dunsIndex + 3, lotNrIndex - 1)
-                let rawLotNr = this.label.substring(lotNrIndex + 2).slice(0, -2)
+                    let rawPartCode = this.label.substring(partCodeIndex + 2, qtyIndex - 1)
+                    let rawQty = this.label.substring(qtyIndex + 1, dunsIndex - 1)
+                    let rawDuns = this.label.substring(dunsIndex + 3, lotNrIndex - 1)
+                    let rawLotNr = this.label.substring(lotNrIndex + 2).slice(0, -2)
 
-                let scan = {
-                    partCode: '',
-                    qty: '',
-                    duns: '',
-                    lotNr: ''
-                }
+                    let scan = {
+                        partCode: '',
+                        qty: '',
+                        duns: '',
+                        lotNr: ''
+                    }
 
-                if (rawPartCode != '?') scan.partCode = rawPartCode
-                if (rawQty != '?') scan.qty = rawQty
-                if (rawDuns != '?') scan.duns = rawDuns
-                if (rawLotNr != '?') scan.lotNr = rawLotNr
+                    if (rawPartCode != '?') scan.partCode = rawPartCode
+                    if (rawQty != '?') scan.qty = rawQty
+                    if (rawDuns != '?') scan.duns = rawDuns
+                    if (rawLotNr != '?') scan.lotNr = rawLotNr
 
-                this.$emit('scanned', scan)
+                    this.$emit('scanned', scan)
+                    this.label = ''
             }
-        },
+        }
     }
 }
 </script>

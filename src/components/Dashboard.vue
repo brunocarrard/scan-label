@@ -15,10 +15,11 @@
             <div class="flex flex-col gap-5">
                 <div>
                     <div v-for="part in data.parts" class="gap-2">
-                        <label class="font-bold text-white pl-4">{{ part.PartCode }}:</label>
+                        <label class="font-bold text-white pl-4" :class="{ 'pl-8': part.ParentPart }">{{ part.PartCode
+                            }}:</label>
                         <label class="pl-2 text-white"> <label
                                 :class="{ completed: part.ScanQty == part.Qty, 'over-qty': part.ScanQty > part.Qty, incompleted: part.ScanQty < part.Qty }">{{
-                                    part.ScanQty ? part.ScanQty : 0 }}</label> / <b>{{ part.Qty }}</b></label>
+                    part.ScanQty ? part.ScanQty : 0 }}</label> / <b>{{ part.Qty }}</b></label>
                         <LabelTable :scans="scannedList[part.PartCode]"
                             @removeItem="(index) => removeItem(index, part.PartCode)" />
                     </div>
@@ -64,6 +65,7 @@ export default {
         }
     },
     beforeMount() {
+        console.log(this.data.parts)
         this.data.parts.forEach(part => {
             this.scannedList[part.PartCode] = []
         })
@@ -71,13 +73,35 @@ export default {
     methods: {
         scanned(scan) {
             if (this.data.parts.some(part => part.PartCode === scan.partCode)) {
-                this.scannedList[scan.partCode].push(scan)
-                this.calculateQty()
-                this.scaning = false
-            } else {
-                toastify('error', 'Scanned PartCode does not exists on Sales Order')
-            }
+                if (this.existsCertificate(scan)) {
+                    scan.SubPartInd = this.data.parts.find(part => part.PartCode === scan.partCode).SubPartInd ?? 0
+                    if (scan.SubPartInd == 1) scan.ParentPart = this.data.parts.find(part => part.PartCode === scan.partCode).ParentPart
+                    this.scannedList[scan.partCode].push(scan)
+                    this.calculateQty()
+                    this.scaning = false
+                }
+            } else toastify('error', 'Scanned PartCode does not exists on Sales Order')
 
+        },
+        existsCertificate(scan) {
+            let dataPart = this.data.parts.find(part => part.PartCode === scan.partCode)
+            if (!dataPart.available_certificates) return true
+            else {
+                let availableCertificates = dataPart.available_certificates.find(certificate => certificate.code == scan.lotNr)
+                if (!availableCertificates) {
+                    toastify('error', `Scanned LotNr/Certificate "${scan.lotNr}" does not belong in this Part.`)
+                    return false
+                } else {
+                    if ((isNaN(parseInt(availableCertificates.scannedQty)) ? 0 : parseInt(availableCertificates.scannedQty)) + parseInt(scan.qty) > parseInt(availableCertificates.qty)) {
+                        toastify('error', `Scanned LotNr/Certificate "${scan.lotNr}" has already been fulfilled.`)
+                        return false
+                    } else {
+                        if (availableCertificates.scannedQty) availableCertificates.scannedQty = parseInt(scan.qty) + availableCertificates.scannedQty
+                        else availableCertificates.scannedQty = parseInt(scan.qty)
+                        return true
+                    }
+                }
+            }
         },
         calculateQty() {
             this.totalScan = 0
@@ -92,13 +116,31 @@ export default {
 
             })
             let ready = true
+            let scanArray = []
+            Object.values(this.scannedList).forEach(scans => {
+                scans.forEach(scan => {
+                    if (scan.SubPartInd == 0) scanArray.push(scan)
+                })
+            })
+            if (!scanArray.length > 0) ready = false
             this.data.parts.forEach(part => {
                 if (part.ScanQty > part.Qty) ready = false
             })
+
             console.log(ready)
             this.ready = ready
         },
         removeItem(index, partCode) {
+            if (this.scannedList[partCode][index].lotNr != "") {
+                let availableCertificates = this.data.parts.find(part => part.PartCode === partCode).available_certificates
+                console.log(`availableCertificates: ${availableCertificates}`)
+                if (availableCertificates) {
+                    let certificateObj = availableCertificates.find(certificate => certificate.code == this.scannedList[partCode][index].lotNr)
+                    console.log(`code: ${this.scannedList[partCode][index].lotNr}`)
+                    console.log(`certificateObj: ${availableCertificates}`)
+                    if (certificateObj) certificateObj.scannedQty = certificateObj.scannedQty - this.scannedList[partCode][index].qty
+                }
+            }
             this.scannedList[partCode].splice(index, 1);
             this.calculateQty();
         },
@@ -114,7 +156,7 @@ export default {
                 })
             })
             try {
-                const response = await axios.post('https://192.168.0.154:4000/', payload);
+                const response = await axios.post('http://127.0.0.1:5000', payload);
                 toastify('success', response.data)
                 this.$router.push('/')
             } catch (error) {

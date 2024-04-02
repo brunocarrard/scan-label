@@ -14,6 +14,15 @@ export default {
   },
   methods: {
     confirmedOrdNr(data) {
+      const rearrangedArray = [];
+      data.parts.forEach(obj => {
+        if (!obj.ParentPart) {
+          rearrangedArray.push(obj);
+          const children = data.parts.filter(child => child.ParentPart === obj.PartCode);
+          rearrangedArray.push(...children);
+        }
+      });
+      data.parts = rearrangedArray
       this.data = data;
       this.$router.push('/dashboard');
     }
