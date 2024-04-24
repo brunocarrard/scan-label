@@ -12,6 +12,9 @@ export default {
       },
       spacing: {
         'cel': '500px',
+      },
+      width: {
+        '80': '80%'
       }
     },
   },

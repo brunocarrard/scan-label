@@ -5,11 +5,7 @@
                 <i v-html="backArrow" class="cursor-pointer" @click="$router.push('/')"></i>
                 <h1 class="font-bold text-white text-xl sm:pl-10 pl-2">{{ data.ordNr }}</h1>
             </div>
-            <!-- <button class="bg-white rounded text-black p-2 w-10/12 self-center mt-4" @click="() => {this.scaning = true}" :disabled="loading">
-                Scan Label
-            </button> -->
-            <ScanLabel @scanned="(scan) => scanned(scan)" @closeModal="scaning = false" />
-            <!-- <LabelTable :scans="scannedList" @removeItem="(index) => removeItem(index)" /> -->
+            <ScanLabel @scanned="(scan) => scanned(scan)" />
         </div>
         <div class="bg-grey col-span-12 flex flex-col">
             <div class="flex flex-col gap-5">
@@ -19,9 +15,10 @@
                             }}:</label>
                         <label class="pl-2 text-white"> <label
                                 :class="{ completed: part.ScanQty == part.Qty, 'over-qty': part.ScanQty > part.Qty, incompleted: part.ScanQty < part.Qty }">{{
-                    part.ScanQty ? part.ScanQty : 0 }}</label> / <b>{{ part.Qty }}</b></label>
-                        <LabelTable :scans="scannedList[part.PartCode]"
-                            @removeItem="(index) => removeItem(index, part.PartCode)" />
+                                    part.ScanQty ? part.ScanQty : 0 }}</label> / <b>{{ part.Qty }}</b></label>
+                        <LabelTable
+                            :scans="scannedList[part.PartCode].filter(scan => scan.ParentPart == part.ParentPart)"
+                            @removeItem="(scan) => removeItem(scan, part.PartCode)" />
                     </div>
 
                 </div>
@@ -37,35 +34,42 @@
         </div>
 
     </div>
+    <ParentModal v-if="parentDialog" :parents="choosingParents" :scan="choosingScan"
+        @selected="(scan) => processScan(scan)" />
 </template>
 
 <script>
 import { backArrow } from '../assets/index.js'
 import LabelTable from './LabelTable.vue';
 import ScanLabel from './ScanLabel.vue';
+import ParentModal from './ParentModal.vue';
 import { useToastify } from 'vue-toastify-3'
 const { toastify } = useToastify()
-import axios from "axios";
+import { shippingStore } from "../stores/shipping.js"
 export default {
-    props: {
-        data: {}
-    },
     components: {
         LabelTable,
-        ScanLabel
+        ScanLabel,
+        ParentModal
     },
     data() {
         return {
-            scaning: false,
             scannedList: {},
             backArrow,
             ready: false,
             loading: false,
-            totalScan: 0
+            totalScan: 0,
+            data: {},
+            parentDialog: false,
+            choosingScan: {},
+            choosingParents: []
         }
     },
     beforeMount() {
-        console.log(this.data.parts)
+        console.log('data: ', shippingStore()._orderData)
+        if (Object.keys(shippingStore()._orderData).length > 0) this.data = shippingStore()._orderData;
+        else this.$router.push('/')
+        console.log(this.data)
         this.data.parts.forEach(part => {
             this.scannedList[part.PartCode] = []
         })
@@ -75,17 +79,33 @@ export default {
             if (this.data.parts.some(part => part.PartCode === scan.partCode)) {
                 if (this.existsCertificate(scan)) {
                     scan.SubPartInd = this.data.parts.find(part => part.PartCode === scan.partCode).SubPartInd ?? 0
-                    if (scan.SubPartInd == 1) scan.ParentPart = this.data.parts.find(part => part.PartCode === scan.partCode).ParentPart
-                    this.scannedList[scan.partCode].push(scan)
-                    this.calculateQty()
-                    this.scaning = false
+                    if (scan.SubPartInd) {
+                        if (this.data.parts.filter(part => part.PartCode === scan.partCode).length > 1) {
+                            this.choosingScan = scan
+                            this.data.parts.filter(part => part.PartCode === scan.partCode).forEach(choosePart => {
+                                this.choosingParents.push(choosePart.ParentPart)
+                            })
+                            this.parentDialog = true
+                            return
+                        } else scan.ParentPart = this.data.parts.find(part => part.PartCode === scan.partCode).ParentPart
+                    }
+                    this.processScan(scan)
+
                 }
             } else toastify('error', 'Scanned PartCode does not exists on Sales Order')
 
         },
+        processScan(scan) {
+            this.scannedList[scan.partCode].push(scan)
+            this.calculateQty()
+            this.parentDialog = false
+            this.choosingParents = []
+            this.choosingScan = {}
+            console.log(this.scannedList)
+        },
         existsCertificate(scan) {
             let dataPart = this.data.parts.find(part => part.PartCode === scan.partCode)
-            if (!dataPart.available_certificates) return true
+            if (!dataPart.available_certificates || dataPart.available_certificates.length == 0) return true
             else {
                 let availableCertificates = dataPart.available_certificates.find(certificate => certificate.code == scan.lotNr)
                 if (!availableCertificates) {
@@ -110,10 +130,16 @@ export default {
             })
             this.data.parts.forEach(part => {
                 this.scannedList[part.PartCode].forEach(scan => {
-                    part.ScanQty += parseInt(scan.qty)
-                    this.totalScan += parseInt(scan.qty)
+                    if (scan.SubPartInd) {
+                        if (scan.ParentPart == part.ParentPart) {
+                            part.ScanQty += parseInt(scan.qty)
+                            this.totalScan += parseInt(scan.qty)
+                        }
+                    } else {
+                        part.ScanQty += parseInt(scan.qty)
+                        this.totalScan += parseInt(scan.qty)
+                    }
                 })
-
             })
             let ready = true
             let scanArray = []
@@ -130,18 +156,15 @@ export default {
             console.log(ready)
             this.ready = ready
         },
-        removeItem(index, partCode) {
-            if (this.scannedList[partCode][index].lotNr != "") {
+        removeItem(scan, partCode) {
+            if (this.scannedList[partCode].find(obj => obj == scan).lotNr != "") {
                 let availableCertificates = this.data.parts.find(part => part.PartCode === partCode).available_certificates
-                console.log(`availableCertificates: ${availableCertificates}`)
                 if (availableCertificates) {
-                    let certificateObj = availableCertificates.find(certificate => certificate.code == this.scannedList[partCode][index].lotNr)
-                    console.log(`code: ${this.scannedList[partCode][index].lotNr}`)
-                    console.log(`certificateObj: ${availableCertificates}`)
-                    if (certificateObj) certificateObj.scannedQty = certificateObj.scannedQty - this.scannedList[partCode][index].qty
+                    let certificateObj = availableCertificates.find(certificate => certificate.code == this.scannedList[partCode].find(obj => obj == scan).lotNr)
+                    if (certificateObj) certificateObj.scannedQty = certificateObj.scannedQty - this.scannedList[partCode].find(obj => obj == scan).qty
                 }
             }
-            this.scannedList[partCode].splice(index, 1);
+            this.scannedList[partCode] = this.scannedList[partCode].filter(obj => obj !== scan)
             this.calculateQty();
         },
         async confirm() {
@@ -156,12 +179,17 @@ export default {
                 })
             })
             try {
-                const response = await axios.post('http://127.0.0.1:5000', payload);
+                let response = await shippingStore().postScans(payload);
                 toastify('success', response.data)
                 this.$router.push('/')
             } catch (error) {
-                console.error(error)
-                toastify('error', error.response.data)
+                if (error.response.status == '422') {
+                    toastify('warning', 'Session has expired. Please login again.')
+                    localStorage.clear();
+                    this.$router.push('/login')
+                } else if (error.response.status != '401') {
+                    toastify('error', error.response.data)
+                }
             } finally {
                 this.loading = false
             }
