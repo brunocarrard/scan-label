@@ -23,6 +23,7 @@ import axios from "axios";
 import { useToastify } from 'vue-toastify-3'
 const { toastify } = useToastify()
 import { Html5QrcodeScanner } from "html5-qrcode";
+import { shippingStore } from "../stores/shipping.js"
 export default {
     data() {
         return {
@@ -49,17 +50,17 @@ export default {
             else {
                 this.loading = true;
                 try {
-                    const response = await axios.get('http://127.0.0.1:5000', {
-                        params: {
-                            value: this.ordNr,
-                        }
-                    });
-                    console.log(response)
-                    this.$emit('confirmed', response.data)
+                    await shippingStore().getOrderData(this.ordNr);
+                    this.$router.push('/dashboard')
                 } catch (error) {
-                    console.error(error)
-                    toastify('error', error.response.data.error)
-
+                    console.log(error)
+                    if (error.response.status == '422') {
+                        toastify('warning', 'Session has expired. Please login again.')
+                        localStorage.clear();
+                        this.$router.push('/login');
+                    } else if (error.response.status != '401') {
+                        toastify('error', error.response.data.error)
+                    }
                 } finally {
                     this.loading = false;
                 }

@@ -34,7 +34,6 @@ export default {
             (decodedText, decodedResult) => {
                 // do something with the decoded text
                 this.label = decodedText;
-                console.log('sacneado')
             },
         );
     },
