@@ -6,7 +6,7 @@
             <!-- <i v-html="closeIcon" class="absolute top-0 left-0 pl-4 pt-6 cursor-pointer" @click="$emit('closeModal')"></i> -->
             <!-- <label class="w-1/2 font-bold">Scan Label:</label> -->
             <div class="flex flex-col gap-1">
-                <div id="reader" style="width: 200px;" class="hidden sm:block"></div>
+                <div id="reader" style="width: 200px;" class="hidden h-0 sm:block sm:h-auto"></div>
                 <input class=" text-black text-center mt-2 mb-2 sm:mt-0" placeholder="Scan will appear here"
                     v-model="label">
                 <button class="bg-white rounded py-1 text-black mb-2" @click="interpreteScan()"

@@ -1,5 +1,5 @@
 <template>
-    <div class="grid grid-cols-12 w-full max-h-screen scroll-auto">
+    <div class="grid grid-cols-12 w-full max-h-screen scroll-auto lg:h-screen">
         <div class="col-span-12 bg-lightGrey flex flex-col">
             <div class="sm:pl-4 sm:pt-4 text-xs sm:text-base">
                 <i v-html="backArrow" class="cursor-pointer" @click="$router.push('/')"></i>
@@ -7,7 +7,7 @@
             </div>
             <ScanLabel @scanned="(scan) => scanned(scan)" />
         </div>
-        <div class="bg-grey col-span-12 flex flex-col">
+        <div class="bg-grey col-span-12 flex flex-col start-0">
             <div class="flex flex-col gap-5">
                 <div>
                     <div v-for="part in data.parts" class="gap-2">
