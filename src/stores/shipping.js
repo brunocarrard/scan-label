@@ -9,7 +9,7 @@ export const shippingStore = defineStore("shipping", {
     actions: {
       async getOrderData(ordNr) {
         try {
-            const response = await axios.get('http://127.0.0.1:5000/', {
+            const response = await axios.get('https://192.168.0.154:4000/', {
                                 params: {
                                     value: ordNr,
                                 },
@@ -45,7 +45,7 @@ export const shippingStore = defineStore("shipping", {
       },
       async postScans(payload) {
         try {
-            const response = await axios.post('http://127.0.0.1:5000/', payload, {
+            const response = await axios.post('https://192.168.0.154:4000/', payload, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem('token')}`
                 }

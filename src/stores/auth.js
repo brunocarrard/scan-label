@@ -9,7 +9,7 @@ export const authStore = defineStore("auth", {
     async auth(payload) {
         try {
             // console.log(import.meta.env.API_ADDRESS)
-            const response = await axios.post('http://127.0.0.1:5000/login', payload)
+            const response = await axios.post('https://192.168.0.154:4000/login', payload)
             localStorage.setItem('token', response.data.access_token)
             localStorage.setItem('user', response.data.isah_user)
             localStorage.setItem('refresh_token', response.data.refresh_token)
@@ -20,7 +20,7 @@ export const authStore = defineStore("auth", {
     },
     async renewToken() {
       try {
-        const response = await axios.get('http://127.0.0.1:5000/refresh', {
+        const response = await axios.get('https://192.168.0.154:4000/refresh', {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('refresh_token')}`
           }
