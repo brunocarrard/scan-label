@@ -19,11 +19,10 @@
 </template>
 
 <script>
-import axios from "axios";
 import { useToastify } from 'vue-toastify-3'
 const { toastify } = useToastify()
 import { Html5QrcodeScanner } from "html5-qrcode";
-import { shippingStore } from "../stores/shipping.js"
+import { shippingStore } from "../../stores/shipping.js"
 export default {
     data() {
         return {
@@ -51,7 +50,7 @@ export default {
                 this.loading = true;
                 try {
                     await shippingStore().getOrderData(this.ordNr);
-                    this.$router.push('/dashboard')
+                    this.$router.push('/packing/dashboard')
                 } catch (error) {
                     console.log(error)
                     if (error.response.status == '422') {

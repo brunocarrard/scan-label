@@ -23,7 +23,7 @@
 </template>
 
 <script>
-import { removeIcon } from '../assets/index.js';
+import { removeIcon } from '../../assets/index.js';
 export default {
     props: {
         scans: Array

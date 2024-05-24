@@ -4,7 +4,8 @@
         <div class="w-96 flex flex-col items-center justify-center gap-2">
             <h1 class="text-white font-bold">Choose your SubPart's Parent Part</h1>
             <button v-for="parent in parents" @click="chooseParent(parent)"
-                class="bg-white rounded w-48 text-grey font-bold h-8">{{ parent }}</button>
+                class="bg-white rounded w-48 text-grey font-bold h-8">{{ parent == undefined ? 'Not a SubPart' : parent
+                }}</button>
         </div>
     </div>
 </template>
@@ -17,7 +18,7 @@ export default {
     },
     methods: {
         chooseParent(parent) {
-            this.scan.ParentPart = parent
+            if (parent != undefined) this.scan.ParentPart = parent
             this.$emit('selected', this.scan)
         }
     }

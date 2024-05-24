@@ -14,8 +14,7 @@ import { logoutIcon } from '../assets/index.js'
 export default {
     data() {
         return {
-            logoutIcon,
-            user: ''
+            logoutIcon
         }
     },
     computed: {
@@ -26,7 +25,7 @@ export default {
     methods: {
         logout() {
             localStorage.clear()
-            this.$router.push('login')
+            this.$router.push('/login')
         }
     }
 }

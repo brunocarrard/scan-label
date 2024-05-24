@@ -16,11 +16,6 @@ export default {
   components: {
     Navbar
   },
-  data() {
-    return {
-      navbar: true
-    }
-  },
   computed: {
     navbar() {
       return this.$route.name === 'Login' ? false : true
