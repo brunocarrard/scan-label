@@ -18,7 +18,8 @@
                                     part.ScanQty ? part.ScanQty : 0 }}</label> / <b>{{ part.Qty }}</b></label>
                         <LabelTable
                             :scans="scannedList[part.PartCode].filter(scan => scan.ParentPart == part.ParentPart)"
-                            @removeItem="(scan) => removeItem(scan, part.PartCode)" />
+                            @removeItem="(scan) => removeItem(scan, part.PartCode)"
+                            @changeQty="(payload) => changeQty(payload.scan, payload.qty)" />
                     </div>
 
                 </div>
@@ -66,24 +67,24 @@ export default {
         }
     },
     beforeMount() {
-        console.log('data: ', shippingStore()._orderData)
+
         if (Object.keys(shippingStore()._orderData).length > 0) this.data = shippingStore()._orderData;
         else this.$router.push('/')
-        console.log(this.data)
         this.data.parts.forEach(part => {
             this.scannedList[part.PartCode] = []
         })
+        console.log(this.data)
     },
     methods: {
         scanned(scan) {
             if (this.data.parts.some(part => part.PartCode === scan.partCode)) {
                 if (this.existsCertificate(scan)) {
                     // scan.SubPartInd = this.data.parts.find(part => part.PartCode === scan.partCode).SubPartInd ?? 0
-                    scan.SubPartInd = 0
+                    // scan.SubPartInd = 0
                     this.data.parts.filter(part => part.PartCode === scan.partCode).map(part => part.SubPartInd).forEach(SubPartInd => {
-                        if (SubPartInd) scan.SubPartInd = SubPartInd
+                        if (SubPartInd) scan.MustChoose = SubPartInd
                     })
-                    if (scan.SubPartInd) {
+                    if (scan.MustChoose) {
                         if (this.data.parts.filter(part => part.PartCode === scan.partCode).length > 1) {
                             this.choosingScan = scan
                             this.data.parts.filter(part => part.PartCode === scan.partCode).forEach(choosePart => {
@@ -94,6 +95,8 @@ export default {
                             return
                         } else scan.ParentPart = this.data.parts.find(part => part.PartCode === scan.partCode).ParentPart
                     }
+                    if (this.data.parts.filter(part => part.PartCode === scan.partCode).length == 1 && this.data.parts.filter(part => part.PartCode === scan.partCode)[0].SubPartInd) scan.SubPartInd = 1
+                    else scan.SubPartInd = 0
                     this.processScan(scan)
 
                 }
@@ -101,12 +104,12 @@ export default {
 
         },
         processScan(scan) {
+
             this.scannedList[scan.partCode].push(scan)
             this.calculateQty()
             this.parentDialog = false
             this.choosingParents = []
             this.choosingScan = {}
-            console.log(this.scannedList)
         },
         existsCertificate(scan) {
             let dataPart = this.data.parts.find(part => part.PartCode === scan.partCode)
@@ -135,14 +138,16 @@ export default {
             })
             this.data.parts.forEach(part => {
                 this.scannedList[part.PartCode].forEach(scan => {
-                    if (scan.SubPartInd) {
-                        if (scan.ParentPart == part.ParentPart) {
+                    if (scan.SubPartInd == 1) {
+                        if (scan.ParentPart === part.ParentPart) {
                             part.ScanQty += parseInt(scan.qty)
                             this.totalScan += parseInt(scan.qty)
                         }
                     } else {
-                        part.ScanQty += parseInt(scan.qty)
-                        this.totalScan += parseInt(scan.qty)
+                        if (!part.ParentPart) {
+                            part.ScanQty += parseInt(scan.qty)
+                            this.totalScan += parseInt(scan.qty)
+                        }
                     }
                 })
             })
@@ -150,15 +155,15 @@ export default {
             let scanArray = []
             Object.values(this.scannedList).forEach(scans => {
                 scans.forEach(scan => {
-                    if (scan.SubPartInd == 0) scanArray.push(scan)
+                    if (scan.SubPartInd == 1 && this.data.parts.find(part => part.PartCode == scan.ParentPart).ScanQty < scan.qty) scanArray.push(scan)
                 })
             })
-            if (!scanArray.length > 0) ready = false
+            if (scanArray.length > 0) ready = false
+
             this.data.parts.forEach(part => {
                 if (part.ScanQty > part.Qty) ready = false
             })
-
-            console.log(ready)
+            if (this.totalScan == 0) ready = false
             this.ready = ready
         },
         removeItem(scan, partCode) {
@@ -172,14 +177,23 @@ export default {
             this.scannedList[partCode] = this.scannedList[partCode].filter(obj => obj !== scan)
             this.calculateQty();
         },
+        changeQty(scan, qty) {
+            this.scannedList[scan.partCode].find(obj => obj == scan).qty = qty
+            this.calculateQty();
+        },
         async confirm() {
             this.loading = true
             let payload = {
                 ordNr: this.data.ordNr,
                 delLines: []
             }
-            this.data.parts.forEach(part => {
-                this.scannedList[part.PartCode].forEach(scan => {
+            // this.data.parts.forEach(part => {
+            //     this.scannedList[part.PartCode].forEach(scan => {
+            //         payload.delLines.push(scan)
+            //     })
+            // })
+            Object.values(this.scannedList).forEach(scans => {
+                scans.forEach(scan => {
                     payload.delLines.push(scan)
                 })
             })

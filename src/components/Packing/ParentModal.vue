@@ -18,7 +18,12 @@ export default {
     },
     methods: {
         chooseParent(parent) {
-            if (parent != undefined) this.scan.ParentPart = parent
+            if (parent != undefined) {
+                this.scan.ParentPart = parent
+                this.scan.SubPartInd = 1
+            } else {
+                this.scan.SubPartInd = 0
+            }
             this.$emit('selected', this.scan)
         }
     }
