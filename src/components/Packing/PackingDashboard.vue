@@ -152,13 +152,13 @@ export default {
                 })
             })
             let ready = true
-            let scanArray = []
-            Object.values(this.scannedList).forEach(scans => {
-                scans.forEach(scan => {
-                    if (scan.SubPartInd == 1 && this.data.parts.find(part => part.PartCode == scan.ParentPart).ScanQty < scan.qty) scanArray.push(scan)
-                })
-            })
-            if (scanArray.length > 0) ready = false
+            // let scanArray = []
+            // Object.values(this.scannedList).forEach(scans => {
+            //     scans.forEach(scan => {
+            //         if (scan.SubPartInd == 1 && this.data.parts.find(part => part.PartCode == scan.ParentPart).ScanQty < scan.qty) scanArray.push(scan)
+            //     })
+            // })
+            // if (scanArray.length > 0) ready = false
 
             this.data.parts.forEach(part => {
                 if (part.ScanQty > part.Qty) ready = false
@@ -198,6 +198,7 @@ export default {
                 })
             })
             try {
+                // console.log(payload)
                 let response = await shippingStore().postScans(payload);
                 toastify('success', response.data)
                 this.$router.push('/')
