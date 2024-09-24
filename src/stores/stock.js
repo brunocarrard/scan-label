@@ -10,7 +10,7 @@ export const stockStore = defineStore("stock", {
     actions: {
         async getWarehouses() {
             try {
-                const response = await axios.get('http://127.0.0.1:5000/warehouses', {
+                const response = await axios.get('https://192.168.0.154:4000/warehouses', {
                     headers: {
                         Authorization: `Bearer ${localStorage.getItem('token')}`
                     }
@@ -33,7 +33,7 @@ export const stockStore = defineStore("stock", {
         },
         async getParts(payload) {
             try {
-                const response = await axios.get('http://127.0.0.1:5000/stock/parts', {
+                const response = await axios.get('https://192.168.0.154:4000/stock/parts', {
                     params: {
                         warehouse: payload
                     },

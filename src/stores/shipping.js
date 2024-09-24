@@ -5,11 +5,34 @@ import axios from 'axios'
 export const shippingStore = defineStore("shipping", {
     state: () => ({
       _orderData: {},
+      _availableOrders: []
     }),
     actions: {
+      async getAvailableOrders() {
+        try {
+            const response = await axios.get('https://192.168.0.154:4000/sales-orders', {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            this.$patch({ _availableOrders: response.data })
+        } catch(error) {
+            if (error.response.status == '401') {
+                try {
+                    await authStore().renewToken()
+                    // this.getOrderData(ordNr)
+                    throw error
+                } catch (error2) {
+                    throw error2
+                }
+            } else {
+                throw error
+            }
+        }
+      },
       async getOrderData(ordNr) {
         try {
-            const response = await axios.get('http://127.0.0.1:5000/', {
+            const response = await axios.get('https://192.168.0.154:4000/', {
                                 params: {
                                     value: ordNr,
                                 },
@@ -45,7 +68,7 @@ export const shippingStore = defineStore("shipping", {
       },
       async postScans(payload) {
         try {
-            const response = await axios.post('http://127.0.0.1:5000/', payload, {
+            const response = await axios.post('https://192.168.0.154:4000/', payload, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem('token')}`
                 }
